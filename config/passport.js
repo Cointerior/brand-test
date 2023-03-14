@@ -12,6 +12,28 @@ module.exports = function (passport) {
       },
       async (accessToken, refreshToken, profile, done) => {
         console.log(profile);
+        const newUser = {
+          firstName: profile.name.givenName,
+          lastName: profile.name.family,
+          authenticationType: {
+            google: {
+              uuid: profile.id,
+            },
+          },
+          //   image: profile.photos[0].value,
+        };
+
+        try {
+          let user = await User.findOne({ googleId: profile.id }); //Google doesn't return user's gender and email itself
+          if (user) {
+            done(null, user);
+          } else {
+            user = await User.create(newUser);
+            done(null, user);
+          }
+        } catch (e) {
+          console.log(e);
+        }
       }
     )
   );
